@@ -9,10 +9,23 @@
 
 #pragma platform(VEX)
 
+// Operate a VEX EDR robot manually and autonomously
+// The robot must be connected to a properly-configured Raspberry Pi
+// See more at https://github.com/oomwoo/
+//
+// Copyright (C) 2016 oomwoo.com
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License version 3.0
+// as published by the Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License <http://www.gnu.org/licenses/> for details.
+
 #include "Vex_Competition_Includes.c"   // Main competition background code...do not modify!
 #include "UART_Comm_Link_Includes.c"    // Make VEX Cortex UART talk to Raspberry Pi
-
-// TODO blink green LED during data capture
 
 enum UserCommand
 {
