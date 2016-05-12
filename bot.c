@@ -312,11 +312,12 @@ void UserControlFunction()
 		}
 
 		// Send command(s) to Raspberry Pi
+		bool send_user_command = UserCmd != USER_CMD_NONE && !suppress_user_command;
 		if (LinkCmd != LINK_CMD_NONE)
 			SendUartCmd('L', (char) LinkCmd);
-		if (UserCmd != USER_CMD_NONE && !suppress_user_command)
+		if (send_user_command)
 			SendUartCmd('u', (char) UserCmd);
-		if (LinkCmd != LINK_CMD_NONE || UserCmd != USER_CMD_NONE)
+		if (LinkCmd != LINK_CMD_NONE || send_user_command)
 			SendUartLF();		// Finish command(s) with line feed
 
 		// Receive command from Raspberry Pi
