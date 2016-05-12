@@ -9,6 +9,9 @@
 
 #pragma platform(VEX)
 
+#include "Vex_Competition_Includes.c"   // Main competition background code...do not modify!
+#include "UART_Comm_Link_Includes.c"    // Make VEX Cortex UART talk to Raspberry Pi
+
 // Operate a VEX EDR robot manually and autonomously
 // The robot must be connected to a properly-configured Raspberry Pi
 // See more at https://github.com/oomwoo/
@@ -24,19 +27,18 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License <http://www.gnu.org/licenses/> for details.
 
-#include "Vex_Competition_Includes.c"   // Main competition background code...do not modify!
-#include "UART_Comm_Link_Includes.c"    // Make VEX Cortex UART talk to Raspberry Pi
-
 enum UserCommand
 {
-	USER_CMD_NONE,
-	USER_CMD_STOP,
 	USER_CMD_DRIVE_FORWARD,
-	USER_CMD_DRIVE_BACKWARD,
 	USER_CMD_TURN_LEFT,
 	USER_CMD_TURN_RIGHT,
-	USER_CMD_SPIN_LEFT,
-	USER_CMD_SPIN_RIGHT
+	USER_CMD_DRIVE_BACKWARD,
+	USER_CMD_NONE
+//SER_CMD_BACK_OUT_LEFT,
+//USER_CMD_BACK_OUT_RIGHT,
+//USER_CMD_SPIN_LEFT,
+//USER_CMD_SPIN_RIGHT,
+//USER_CMD_STOP,
 };
 
 const short JOY_MIN_VAL = 64;
@@ -57,6 +59,7 @@ bool stop_button_pressed = false;
 bool forget = false;
 bool humanControl = true;
 bool recording = false;
+bool suppress_user_command;
 
 char uartCmd, uartValue;
 
@@ -95,13 +98,10 @@ bool isButtonPressed(tSensors port)
 
 UserCommand JoystickToCommand(short joyFwdBack, short joyLeftRight, short joySpin)
 {
+
 	if (joyFwdBack > JOY_MIN_VAL)
 	{
 		return USER_CMD_DRIVE_FORWARD;
-	}
-	else if (joyFwdBack < -JOY_MIN_VAL)
-	{
-		return USER_CMD_DRIVE_BACKWARD;
 	}
 	else if (joyLeftRight > JOY_MIN_VAL)
 	{
@@ -111,13 +111,9 @@ UserCommand JoystickToCommand(short joyFwdBack, short joyLeftRight, short joySpi
 	{
 		return USER_CMD_TURN_LEFT;
 	}
-	else if (joySpin > JOY_MIN_VAL)
+	else if (joyFwdBack < -JOY_MIN_VAL)
 	{
-		return USER_CMD_SPIN_RIGHT;
-	}
-	else if (joySpin < -JOY_MIN_VAL)
-	{
-		return USER_CMD_SPIN_LEFT;
+		return USER_CMD_DRIVE_BACKWARD;
 	}
 	else
 		return USER_CMD_NONE;
@@ -143,14 +139,14 @@ void CommandToBaseMotorPower(short UserCmd, short* bmLeft, short* bmRight)
 			*bmLeft = 0;
 			*bmRight = 127;
 			break;
-		case USER_CMD_SPIN_RIGHT:
-			*bmLeft = 127;
-			*bmRight = -127;
-			break;
-		case USER_CMD_SPIN_LEFT:
-			*bmLeft = -127;
-			*bmRight = 127;
-			break;
+		//case USER_CMD_SPIN_RIGHT:
+		//	*bmLeft = 127;
+		//	*bmRight = -127;
+		//	break;
+		//case USER_CMD_SPIN_LEFT:
+		//	*bmLeft = -127;
+		//	*bmRight = 127;
+		//	break;
 		default:
 			*bmLeft = 0;
 			*bmRight = 0;
@@ -263,8 +259,8 @@ void UserControlFunction()
 		joySpin = vexRT[Ch4];
 		UserCmd = JoystickToCommand(joyFwdBack, joyLeftRight, joySpin);
 
-		if (vexRT[Btn5U] || vexRT[Btn5D] || vexRT[Btn6U] || vexRT[Btn6D])
-			UserCmd = USER_CMD_STOP;
+		// Helps recording back-out-of-dead-end situations
+		suppress_user_command = vexRT[Btn5U] != 0;
 
 		////////////////////////////////////////////////////////////////////////////
 		// Control Raspberry Pi
@@ -318,7 +314,7 @@ void UserControlFunction()
 		// Send command(s) to Raspberry Pi
 		if (LinkCmd != LINK_CMD_NONE)
 			SendUartCmd('L', (char) LinkCmd);
-		if (UserCmd != USER_CMD_NONE)
+		if (UserCmd != USER_CMD_NONE && !suppress_user_command)
 			SendUartCmd('u', (char) UserCmd);
 		if (LinkCmd != LINK_CMD_NONE || UserCmd != USER_CMD_NONE)
 			SendUartLF();		// Finish command(s) with line feed
