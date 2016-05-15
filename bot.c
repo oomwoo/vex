@@ -208,7 +208,7 @@ void Init()
 	bLCDBacklight = true;				// Turn on LCD Backlight
 	lcdViewPrev = 0; 						// Force full LCD update
 	SetHumanControl(true);
-	SetGreenLed(true, ~humanControl);
+	SetGreenLed(true, !humanControl);
 	nCommPort = uartOne;				// Specify UART to talk to Raspberry Pi
 }
 
@@ -363,7 +363,7 @@ void UserControlFunction()
 		////////////////////////////////////////////////////////////////////////////
 
 		// Blink green LED when recording
-		SetGreenLed(true, ~humanControl);
+		SetGreenLed(true, !humanControl);
 
 		UpdateLCD();
 
