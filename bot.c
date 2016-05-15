@@ -1,5 +1,4 @@
-#pragma config(UART_Usage, UART1, uartVEXLCD, baudRate19200, IOPins, None, None)
-#pragma config(UART_Usage, UART2, uartUserControl, baudRate115200, IOPins, None, None)
+#pragma config(UART_Usage, UART1, uartUserControl, baudRate115200, IOPins, None, None)
 #pragma config(Sensor, dgtl1,  stop_button,    sensorDigitalIn)
 #pragma config(Sensor, dgtl8,  GREEN,          sensorLEDtoVCC)
 #pragma config(Sensor, dgtl10, RED,            sensorLEDtoVCC)
@@ -210,6 +209,7 @@ void Init()
 	lcdViewPrev = 0; 						// Force full LCD update
 	SetHumanControl(true);
 	SetGreenLed(humanControl, recording);
+	nCommPort = uartOne;				// Specify UART to talk to Raspberry Pi
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
