@@ -41,7 +41,7 @@ enum UserCommand
 };
 
 const short JOY_MIN_VAL = 64;
-const short LED_BLINK_PERIOD = 12;
+const short LED_BLINK_PERIOD = 10;
 const short LEFT_MOTOR_PWR_ADJ = -10; // Negative value only
 const short RIGHT_MOTOR_PWR_ADJ = 0; // Negative value only
 
@@ -113,14 +113,6 @@ void SetGreenLed(bool on, bool blink)
 	}
 	else
 		SensorValue[GREEN] = true;
-}
-
-void SetHumanControl(bool human)
-{
-	humanControl = human;
-
-	// Blink green LED when recording
-	SetGreenLed(!humanControl, !humanControl);
 }
 
 bool isButtonPressed(tSensors port)
@@ -232,7 +224,7 @@ void Init()
 {
 	bLCDBacklight = true;				// Turn on LCD Backlight
 	lcdViewPrev = 0; 						// Force full LCD update
-	SetHumanControl(true);
+	humanControl = true;
 	nCommPort = uartOne;				// Specify UART to talk to Raspberry Pi
 
 	short idx = GetBasePower();
@@ -317,7 +309,7 @@ void UserControlFunction()
 		else if (vexRT[Btn7U])
 		{
 			// Transfer control from human operator to robot (autonomous control)
-			SetHumanControl(false);
+			humanControl = false;
 			LinkCmd = LINK_CMD_AUTONOMOUS_CONTROL;
 		}
 		else if (vexRT[Btn8U])
@@ -334,7 +326,7 @@ void UserControlFunction()
 		{
 			// Highest priority command
 			// Transfer control from robot to the human operator (manual control)
-			SetHumanControl(true);
+			humanControl = true;
 			LinkCmd = LINK_CMD_MANUAL_CONTROL;
 		}
 
@@ -389,6 +381,9 @@ void UserControlFunction()
 		// DISPLAY
 		////////////////////////////////////////////////////////////////////////////
 
+		// Blink LED
+		SetGreenLed(!humanControl, !humanControl);
+		
 		UpdateLCD();
 
 		// Motor values can only be updated every 20ms
