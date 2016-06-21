@@ -57,6 +57,7 @@ UserCommand UserCmd = USER_CMD_NONE;
 LinkCommand LinkCmd = LINK_CMD_NONE;
 short green_led_blink_counter = 0;
 short base_pwr_table[] = {50, 60, 70, 80, 90, 100, 110}; // Selected by jumper
+UserCommand UserCmdFromRpi = USER_CMD_NONE;
 
 bool stop_button_pressed = false;
 bool forget = false;
@@ -74,7 +75,7 @@ short isJumperInserted(tSensors port)
 short GetBasePower()
 {
 	short idx;
-	
+
 	if (isJumperInserted(BASE_PWR_1))
 		idx = 0;
 	else if (isJumperInserted(BASE_PWR_2))
@@ -181,7 +182,7 @@ void UpdateLCD()
 		if (lcdView != lcdViewPrev)
 		{
 			displayLCDString(0, 0, "u   F   P   H   ");
-			displayLCDString(1, 0, "    V       L   ");
+			displayLCDString(1, 0, "    V uRx   L   ");
 		}
 		//Display command, who has control
 		displayLCDNumber(0, 1, UserCmd, 1);
@@ -189,6 +190,7 @@ void UpdateLCD()
 		displayLCDNumber(0, 9, stop_button_pressed, 1);
 		displayLCDNumber(0, 13, humanControl, 1);
 		displayLCDNumber(1, 13, LinkCmd, 2);
+		displayLCDNumber(1, 10, UserCmdFromRpi, 1);
 
 		// Display battery voltage
 		sprintf(mainBattery, "%1.2f", nImmediateBatteryLevel/1000.0);
@@ -340,7 +342,7 @@ void UserControlFunction()
 			SendUartLF();		// Finish command(s) with line feed
 
 		// Receive command from Raspberry Pi
-		UserCommand UserCmdFromRpi = USER_CMD_NONE;
+//		UserCmdFromRpi = USER_CMD_NONE;
 		while (true)
 		{
 			uartCmd = GetUartCmd(&uartValue);
@@ -350,14 +352,13 @@ void UserControlFunction()
 			switch (uartCmd)
 			{
 				case 'c':
-					if (!humanControl)
-						UserCmdFromRpi = (UserCommand) uartValue;
+					UserCmdFromRpi = (UserCommand) uartValue;
 					break;
 			}
 		}
 
 		// Driver can simply override autonomous control
-		if (humanControl && UserCmd == USER_CMD_NONE)
+		if (!humanControl && UserCmd == USER_CMD_NONE)
 			UserCmd = UserCmdFromRpi;
 
 		////////////////////////////////////////////////////////////////////////////
@@ -383,7 +384,7 @@ void UserControlFunction()
 
 		// Blink LED
 		SetGreenLed(!humanControl, !humanControl);
-		
+
 		UpdateLCD();
 
 		// Motor values can only be updated every 20ms
