@@ -1,29 +1,18 @@
 // UART library for VEX Cortex to communicate with another UART
 // Use it to connect VEX Cortex e.g. to Raspberry Pi
-// See more at https://github.com/oomwoo/
-//
-// Copyright (C) 2016 oomwoo.com
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License version 3.0
-// as published by the Free Software Foundation.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License <http://www.gnu.org/licenses/> for details.
 
 unsigned int nXmitChars = 0;
 unsigned int nRecvChars = 0;
 TUARTs nCommPort = uartTwo;
-
+	unsigned char myvalue;
+	
 enum LinkCommand
 {
 	LINK_CMD_NONE,
 	LINK_CMD_MANUAL_CONTROL,
 	LINK_CMD_AUTONOMOUS_CONTROL,
-	LINK_CMD_START_CAPTURE,
-	LINK_CMD_STOP_CAPTURE,
+	LINK_CMD_START_RECORDING,
+	LINK_CMD_STOP_RECORDING,
 	LINK_CMD_FORGET = 253,
 	LINK_CMD_TERMINATE_AND_UPLOAD = 254,
 	LINK_CMD_TERMINATE = 255
@@ -92,12 +81,12 @@ bool isValidHexChar(char ch)
 char Char2Nibble(char nibble)
 {
 	if (nibble <= '9')
-		return nibble - '0';
+		return ((unsigned char) nibble) - '0';
 
 	return nibble - 'A';
 }
 
-char GetUartCmd(char* value)
+unsigned char GetUartCmd(char* value)
 {
 	short rcvChar;
 
@@ -116,17 +105,21 @@ char GetUartCmd(char* value)
 
 			char val1 = GetUartCharWait();
 			if (!isValidHexChar(val1))
-				continue;
+				return 0;
 
 			char val2 = GetUartCharWait();
 			if (!isValidHexChar(val2))
-				continue;
+				return 0;
 
 			char ret = GetUartCharWait();
 			if (ret != '\n')
-				continue;
+				return 0;
 
-			*value = Char2Nibble(val1) << 4 + Char2Nibble(val2);
+//			*value = Char2Nibble(val1) << 4 + Char2Nibble(val2); // ROBOT C is really buggy, cannot do this
+			val1 = Char2Nibble(val1);
+			val2 = Char2Nibble(val2);
+			*value = val1 * 16 + val2;
+			myvalue = *value;
 			return cmd;
 		}
 	}
