@@ -317,11 +317,13 @@ void UserControlFunction()
 		else if (vexRT[Btn8U])
 		{
 			// End training successfully - Raspberry Pi disconnects and uploads captured data
+			humanControl = false;
 			LinkCmd = LINK_CMD_TERMINATE_AND_UPLOAD;
 		}
 		else if (vexRT[Btn8D])
 		{
 			// Abort training - Raspberry Pi disconnects, does not upload captured data
+			humanControl = false;
 			LinkCmd = LINK_CMD_TERMINATE;
 		}
 		else if (vexRT[Btn7D])
