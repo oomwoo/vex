@@ -290,13 +290,7 @@ void UserControlFunction()
 		LinkCmd = LINK_CMD_NONE;
 		forget = false;
 
-		if (vexRT[Btn8R])
-		{
-			// Forget last few seconds of training (if the human operator made a mistake)
-			forget = true;
-			LinkCmd = LINK_CMD_FORGET;
-		}
-		else if (vexRT[Btn7R])
+		if (vexRT[Btn7R])
 		{
 			// Have Raspberry Pi start capturing video and user commands (joystick, buttons, etc.)
 			LinkCmd = LINK_CMD_START_RECORDING;
@@ -313,16 +307,11 @@ void UserControlFunction()
 			// Transfer control from human operator to robot (autonomous control)
 			humanControl = false;
 			LinkCmd = LINK_CMD_AUTONOMOUS_CONTROL;
-		}
-		else if (vexRT[Btn8U])
-		{
-			// End training successfully - Raspberry Pi disconnects and uploads captured data
-			humanControl = false;
-			LinkCmd = LINK_CMD_TERMINATE_AND_UPLOAD;
+			UserCmdFromRpi = USER_CMD_NONE;
 		}
 		else if (vexRT[Btn8D])
 		{
-			// Abort training - Raspberry Pi disconnects, does not upload captured data
+			// Terminate connection - Raspberry Pi disconnects
 			humanControl = false;
 			LinkCmd = LINK_CMD_TERMINATE;
 		}
@@ -344,7 +333,6 @@ void UserControlFunction()
 			SendUartLF();		// Finish command(s) with line feed
 
 		// Receive command from Raspberry Pi
-//		UserCmdFromRpi = USER_CMD_NONE;
 		while (true)
 		{
 			uartCmd = GetUartCmd(&uartValue);
@@ -391,7 +379,6 @@ void UserControlFunction()
 
 		// Motor values can only be updated every 20ms
 		wait1Msec(20);
-
 	}
 
 	// Never executed; just to suppress a warning
